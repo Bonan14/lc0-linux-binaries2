@@ -106,7 +106,7 @@ jobs:
              $CXX --version
              $MESON_CMD -Ddefault_library=static -Dsycl=l0 -Ddag_classic=false -Dcpp_args=-fsycl -Dcpp_link_args=-fsycl -Db_vscrt=md
           elif [ "${{ matrix.backend }}" == "cuda" ]; then
-             $MESON_CMD -Dcuda=true -Dcudnn=false
+             $MESON_CMD -Dplain_cuda=true -Dcudnn=false
           else
              $MESON_CMD -Dblas=true
           fi
