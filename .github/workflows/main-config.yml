@@ -1,0 +1,151 @@
+name: Multi-Platform Meson Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        backend: [blas, cuda, sycl]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Update submodules
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive
+
+      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      # ~~~ DEPENDENCY INSTALLATION ~~~
+      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      - name: Install common dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build curl
+
+      - name: Install Meson
+        run: |
+          sudo apt update
+          # Try installing Meson via apt
+          sudo apt install -y meson
+          # If Meson 1.3.2 is not available, fall back to pip
+          if [ "$(meson --version)" != "1.3.2" ]; then
+            sudo apt install -y python3-pip
+            pip3 install meson==1.3.2
+          fi
+          meson --version
+
+      - name: Install BLAS dependencies
+        if: matrix.backend == 'blas'
+        run: | 
+          sudo apt-get install -y libblas-dev libopenblas-dev
+
+      - name: Install CUDA dependencies
+        if: matrix.backend == 'cuda'
+        run: |
+          # Install CUDA from NVIDIA's repository
+          wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${{ matrix.os == 'ubuntu-22.04' && '2204' || '2404' }}/x86_64/cuda-keyring_1.1-1_all.deb
+          sudo dpkg -i cuda-keyring_1.1-1_all.deb
+          sudo apt-get update
+          sudo apt-get install -y cuda-toolkit
+          rm cuda-keyring_1.1-1_all.deb
+          nvcc --version
+
+      - name: Install SYCL dependencies (Intel oneAPI)
+        if: matrix.backend == 'sycl'
+        run: |
+          # Install Intel oneAPI DPC++ Compiler and dependencies
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-get install -y \
+            intel-oneapi-dpcpp-cpp-2025.2 \
+            intel-oneapi-dpcpp-ct \
+            intel-oneapi-mkl-devel \
+            opencl-headers \
+            ocl-icd-opencl-dev
+          # Verify icpx installation
+          export ICX=/opt/intel/oneapi/compiler/2025.2/bin/icx
+          if ! $ICX --version; then
+            echo "Error: icx compiler not found!"
+            exit 1
+          fi
+          $ICX --version
+
+      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      # ~~~    BUILD & CONFIGURE   ~~~
+      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      - name: Configure Meson
+        run: |
+          #Delete build dir
+          rm -rf build
+          # Define base Meson command
+          MESON_CMD="meson setup --buildtype release build -Dgtest=false"
+          # Source environment and set compiler for SYCL
+          if [ "${{ matrix.backend }}" == "sycl" ]; then
+             source /opt/intel/oneapi/setvars.sh
+             export CXX=/opt/intel/oneapi/compiler/2025.2/bin/icx
+             echo "Using CXX compiler: $CXX"
+             $CXX --version
+             $MESON_CMD -Ddefault_library=static -Dsycl=l0 -Ddag_classic=false -Dcpp_args=-fsycl -Dcpp_link_args=-fsycl -Db_vscrt=md
+          elif [ "${{ matrix.backend }}" == "cuda" ]; then
+             $MESON_CMD -Dcuda=true -Dcudnn=false
+          else
+             $MESON_CMD -Dblas=true
+          fi
+          
+      - name: Build with Ninja
+        run: |
+          if [ "${{ matrix.backend }}" == "sycl" ]; then
+            source /opt/intel/oneapi/setvars.sh
+          fi
+          ninja -C build -v
+
+      - name: Upload Meson Log on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: meson-log-${{ matrix.os }}-${{ matrix.backend }}
+          path: build/meson-logs/meson-log.txt
+
+      - name: Download Network
+        run: |
+          cd build
+          curl -L https://training.lczero.org/get_network?sha=195b450999e874d07aea2c09fd0db5eff9d4441ec1ad5a60a140fe8ea94c4f3a -o T79.pb.gz
+          if [ ! -f T79.pb.gz ]; then
+            echo "Error: Failed to download T79.pb.gz"
+            exit 1
+          fi
+
+      - name: Update file timestamp
+        run: touch -t 201801010000.00 build/T79.pb.gz
+
+      - name: Run tests
+        run: |
+            # Skip cuda and sycl test as the work machine doesnt support them.
+            if [ "${{ matrix.backend }}" == "blas" ]; then
+              ./build/lc0 benchmark --backend=${{ matrix.backend }} --num-positions=2 --task-workers=3 --minibatch-size=7 --threads=2
+            fi
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: lc0-${{ matrix.os }}-${{ matrix.backend }}
+          path: build
