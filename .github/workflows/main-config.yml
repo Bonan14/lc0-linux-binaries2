@@ -112,8 +112,11 @@ jobs:
           # Source environment and set compiler for SYCL
           if [ "${{ matrix.backend }}" == "sycl" ]; then
              source /opt/intel/oneapi/setvars.sh
-             export CXX=/opt/intel/oneapi/compiler/2025.2/bin/icx
+             export CC=/opt/intel/oneapi/compiler/2025.2/bin/icx
+             export CXX=/opt/intel/oneapi/compiler/2025.2/bin/icpx
+             echo "Using C compiler: $CC"
              echo "Using CXX compiler: $CXX"
+             $CC --version
              $CXX --version
              $MESON_CMD -Ddefault_library=static -Dsycl=l0 -Dcpp_args=-D_GLIBCXX_HAVE_TLS=1 -Dcpp_args=-fsycl -Dcpp_link_args=-fsycl -Db_vscrt=md
           elif [ "${{ matrix.backend }}" == "cuda" ]; then
