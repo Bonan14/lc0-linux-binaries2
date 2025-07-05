@@ -115,7 +115,7 @@ jobs:
              export CXX=/opt/intel/oneapi/compiler/2025.2/bin/icx
              echo "Using CXX compiler: $CXX"
              $CXX --version
-             $MESON_CMD -Ddefault_library=static -Dsycl=l0 -Ddag_classic=false -Dcpp_args=-fsycl -Dcpp_link_args=-fsycl -Db_vscrt=md
+             $MESON_CMD -Ddefault_library=static -Dsycl=l0 -Dcpp_args=-D_GLIBCXX_HAVE_TLS=1 -Dcpp_args=-fsycl -Dcpp_link_args=-fsycl -Db_vscrt=md
           elif [ "${{ matrix.backend }}" == "cuda" ]; then
              $MESON_CMD -Dplain_cuda=true -Dcudnn=false
           else
