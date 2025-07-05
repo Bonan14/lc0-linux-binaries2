@@ -91,13 +91,14 @@ jobs:
             intel-oneapi-mkl-devel \
             opencl-headers \
             ocl-icd-opencl-dev
-          # Verify icx installation
-          export ICX=/opt/intel/oneapi/compiler/2025.2/bin/icx
-          if ! $ICX --version; then
-            echo "Error: icx compiler not found!"
+          # Verify icpx installation
+          #export CC=/opt/intel/oneapi/compiler/2025.2/bin/icx
+          export ICPX=/opt/intel/oneapi/compiler/2025.2/bin/icpx
+          if ! $ICPX --version; then
+            echo "Error: icpx compiler not found!"
             exit 1
           fi
-          $ICX --version
+          $ICPX --version
 
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       # ~~~    BUILD & CONFIGURE   ~~~
