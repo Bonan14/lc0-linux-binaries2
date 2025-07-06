@@ -265,6 +265,10 @@ if get_option('dag_classic')
   if get_option('sycl') != 'off'
     meson.add_postconf_script('python', meson.source_root() / 'scripts' / 'add_tls.py')
   endif
+  if host_machine.system() != 'windows'
+    ranlib = find_program('ranlib')
+    run_command(ranlib, 'subprojects/abseil-cpp-20240722.0/libabsl_container.a')
+  endif
 endif
 
 #############################################################################
