@@ -1,4 +1,4 @@
-name: Multi-Platform Meson Build
+name: Multi-Platform Lc0 Build
 
 on:
   push:
@@ -119,7 +119,7 @@ jobs:
              echo "Using CXX compiler: $CXX"
              $CC --version
              $CXX --version
-             $MESON_CMD -Ddefault_library=static -Dsycl=l0 -Dcpp_args=-fsycl -Dcpp_link_args=-fsycl -Db_vscrt=md
+             $MESON_CMD -Dsycl=l0 -Dcpp_args=-fsycl -Dcpp_link_args=-fsycl
           elif [ "${{ matrix.backend }}" == "cuda" ]; then
              $MESON_CMD -Dplain_cuda=true -Dcudnn=false
           else
