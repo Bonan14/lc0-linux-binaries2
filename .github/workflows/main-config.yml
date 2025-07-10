@@ -35,7 +35,7 @@ jobs:
       - name: Install common dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build curl
+          sudo apt-get install -y ninja-build curl binutils
 
       - name: Install Meson
         run: |
