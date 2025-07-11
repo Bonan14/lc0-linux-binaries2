@@ -137,7 +137,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: meson-log-${{ matrix.os }}-${{ matrix.backend }}
+          name: build-logs-${{ matrix.os }}-${{ matrix.backend }}
           path: build
 
       - name: Download Network
