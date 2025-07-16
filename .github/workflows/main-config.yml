@@ -119,7 +119,7 @@ jobs:
              echo "Using CXX compiler: $CXX"
              $CC --version
              $CXX --version
-             $MESON_CMD -Dsycl=l0 -Dcpp_args=-fsycl -Dcpp_link_args=-fsycl
+             $MESON_CMD -Dsycl=l0 -Dcpp_args=-fsycl -Dcpp_link_args=-fsycl -Ddag_classic=false
           elif [ "${{ matrix.backend }}" == "cuda" ]; then
              $MESON_CMD -Dplain_cuda=true -Dcudnn=false
           else
