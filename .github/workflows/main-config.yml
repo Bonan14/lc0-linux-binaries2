@@ -35,16 +35,16 @@ jobs:
       - name: Cache APT packages
         uses: actions/cache@v4
         with:
-          path: /var/cache/apt/archives
-          key: ${{ matrix.os }}-${{ matrix.backend }}-apt-v1
-          restore-keys: ${{ matrix.os }}-${{ matrix.backend }}-apt-v1
+          path: /var/cache/apt/archives/*.deb
+          key: apt-v1-${{ matrix.os }}-${{ matrix.backend }}
+          restore-keys: apt-v1-${{ matrix.os }}-${{ matrix.backend }}
 
-      - name: Cache pip packages
-        uses: actions/cache@v4
-        with:
-         path: ~/.cache/pip
-         key: ${{ matrix.os }}-pip-v1
-         restore-keys: ${{ matrix.os }}-pip-v1
+      #- name: Cache pip packages
+       # uses: actions/cache@v4
+       # with:
+       #  path: ~/.cache/pip
+       #  key: pip-v1-${{ matrix.os }}
+       #  restore-keys: ${{ matrix.os }}-pip-v1
 
 
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
