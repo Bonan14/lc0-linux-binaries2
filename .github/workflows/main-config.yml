@@ -44,7 +44,7 @@ jobs:
         with:
          path: ~/.cache/pip
          key: ${{ matrix.os }}-pip-v1
-         restore-key: ${{ matrix.os }}-pip-v1
+         restore-keys: ${{ matrix.os }}-pip-v1
 
 
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
