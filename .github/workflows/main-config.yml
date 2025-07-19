@@ -40,7 +40,7 @@ jobs:
           key: apt-v1-${{ matrix.os }}-${{ matrix.backend }}
           restore-keys: apt-v1-${{ matrix.os }}-${{ matrix.backend }}
 
-      - name: Copy cached APT packages
+      - name: Copy cached Dep packages
         if: steps.cache-dep.outputs.cache-hit == 'true'
         run: |
           sudo mkdir -p /var/cache/apt/archives
