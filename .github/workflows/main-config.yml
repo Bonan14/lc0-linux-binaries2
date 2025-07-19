@@ -74,13 +74,14 @@ jobs:
       - name: Install BLAS dependencies
         if: matrix.backend == 'blas'
         run: | 
-          if: steps.cache-dep.outputs.cache-hit != 'true'
-          sudo apt-get install -y libblas-dev libopenblas-dev
+          if [ steps.cache-dep.outputs.cache-hit != 'true' ]; then
+             sudo apt-get install -y libblas-dev libopenblas-dev
+          fi
 
       - name: Install CUDA dependencies
         if: matrix.backend == 'cuda'
         run: |
-         if: steps.cache-dep.outputs.cache-hit != 'true'
+         if [ steps.cache-dep.outputs.cache-hit != 'true' ]; then
           # Install CUDA from NVIDIA's repo
           if [ "${{ matrix.os }}" == "ubuntu-22.04" ]; then
              wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
@@ -99,11 +100,12 @@ jobs:
              sudo apt-get update
              sudo apt-get -y install cuda-toolkit-12-9
           fi
+         fi
              
       - name: Install SYCL dependencies (Intel oneAPI)
         if: matrix.backend == 'sycl'
         run: |
-         if: steps.cache-dep.outputs.cache-hit != 'true'
+         if [ steps.cache-dep.outputs.cache-hit != 'true' ]; then
           # Install Intel oneAPI DPC++ Compiler and dependencies
           wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
           sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
@@ -116,6 +118,7 @@ jobs:
             intel-oneapi-mkl-devel \
             opencl-headers \
             ocl-icd-opencl-dev
+         fi
           # Verify icpx installation
           #export CC=/opt/intel/oneapi/compiler/2025.2/bin/icx
           export ICPX=/opt/intel/oneapi/compiler/2025.2/bin/icpx
