@@ -32,12 +32,19 @@ jobs:
       #~~~ CACHE BUILD DEPENDENCIES ~~~
       #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       
-      - name: Cache APT packages
+      - name: Cache Dep packages
+        id: cache-dep
         uses: actions/cache@v4
         with:
-          path: /var/cache/apt/archives/*.deb
+          path: ${{ github.workspace }}/dep-cache/
           key: apt-v1-${{ matrix.os }}-${{ matrix.backend }}
           restore-keys: apt-v1-${{ matrix.os }}-${{ matrix.backend }}
+
+      - name: Copy cached APT packages
+        if: steps.cache-dep.outputs.cache-hit == 'true'
+        run: |
+          sudo mkdir -p /var/cache/apt/archives
+          sudo cp -r ${{ github.workspace }}/dep-cache/*.deb /var/cache/apt/archives/ || true
 
       #- name: Cache pip packages
        # uses: actions/cache@v4
@@ -114,6 +121,11 @@ jobs:
             exit 1
           fi
           $ICPX --version
+
+      - name: Add new dep packages to cache directory
+        run: |
+          mkdir -p ${{ github.workspace }}/dep-cache/
+          sudo cp /var/cache/apt/archives/*.deb ${{ github.workspace }}/dep-cache/ || true
 
 
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
