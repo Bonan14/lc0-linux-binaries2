@@ -15,6 +15,24 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
         backend: [blas, cuda, sycl]
+        artifact_name:
+          - lc0-${{ matrix.os }}-cuda-12
+          - lc0-${{ matrix.os }}-sycl
+          - lc0-${{ matrix.os }}-blas
+        exclude:
+          - backend: sycl
+            artifact_name: lc0-${{ matrix.os }}-cuda-12
+          - backend: sycl
+            artifact_name: lc0-${{ matrix.os }}-blas
+          - backend: blas
+            artifact_name: lc0-${{ matrix.os }}-cuda-12
+          - backend: blas
+            artifact_name: lc0-${{ matrix.os }}-sycl
+          - backend: cuda
+            artifact_name: lc0-${{ matrix.os }}-blas
+          - backend: cuda
+            artifact_name: lc0-${{ matrix.os }}-sycl
+         
 
     runs-on: ${{ matrix.os }}
 
@@ -185,12 +203,7 @@ jobs:
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: |
-            if [ "${{ matrix.backend }}" == "cuda" ]; then
-               lc0-${{ matrix.os }}-${{ matrix.backend }}-12
-            else
-              lc0-${{ matrix.os }}-${{ matrix.backend }}
-            fi
+          name: ${{ matrix.artifact_name }}
           path: |
             build/lc0
             build/T79.pb.gz
