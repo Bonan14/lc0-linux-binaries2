@@ -185,7 +185,12 @@ jobs:
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: lc0-${{ matrix.os }}-${{ matrix.backend }}
+          name: |
+            if [ "${{ matrix.backend }}" == "cuda" ]; then
+               lc0-${{ matrix.os }}-${{ matrix.backend }}-12
+            else
+              lc0-${{ matrix.os }}-${{ matrix.backend }}
+            fi
           path: |
             build/lc0
             build/T79.pb.gz
