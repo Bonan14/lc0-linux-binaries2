@@ -46,13 +46,6 @@ jobs:
           sudo mkdir -p /var/cache/apt/archives
           sudo cp -r ${{ github.workspace }}/dep-cache/*.deb /var/cache/apt/archives/ || true
 
-      #- name: Cache pip packages
-       # uses: actions/cache@v4
-       # with:
-       #  path: ~/.cache/pip
-       #  key: pip-v1-${{ matrix.os }}
-       #  restore-keys: ${{ matrix.os }}-pip-v1
-
 
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       # ~~~ DEPENDENCY INSTALLATION ~~~
@@ -74,14 +67,14 @@ jobs:
       - name: Install BLAS dependencies
         if: matrix.backend == 'blas'
         run: | 
-          if [ "steps.cache-dep.outputs.cache-hit" != "true" ]; then
+          if [ !steps.cache-dep.outputs.cache-hit ]; then
              sudo apt-get install -y libblas-dev libopenblas-dev
           fi
 
       - name: Install CUDA dependencies
         if: matrix.backend == 'cuda'
         run: |
-         if [ "steps.cache-dep.outputs.cache-hit" != "true" ]; then
+         if [ !steps.cache-dep.outputs.cache-hit ]; then
           # Install CUDA from NVIDIA's repo
           if [ "${{ matrix.os }}" == "ubuntu-22.04" ]; then
              wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
@@ -105,7 +98,7 @@ jobs:
       - name: Install SYCL dependencies (Intel oneAPI)
         if: matrix.backend == 'sycl'
         run: |
-         if [ "steps.cache-dep.outputs.cache-hit" != "true" ]; then
+         if [ !steps.cache-dep.outputs.cache-hit ]; then
           # Install Intel oneAPI DPC++ Compiler and dependencies
           wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
           sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
